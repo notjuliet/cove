@@ -89,7 +89,7 @@ export function RequestModal(props: {
             props.onCancel();
           }
         }}
-        class={`dialog-panel relative m-0 grid max-h-[min(760px,90vh)] w-full max-w-2xl gap-4 overflow-hidden rounded-lg bg-(--color-surface) p-4 text-(--color-text) shadow-(--shadow-soft) ${closing() ? "dialog-panel-closing" : ""}`}
+        class={`dialog-panel relative m-0 grid w-full max-w-2xl grid-rows-[auto_minmax(0,1fr)_auto] gap-4 overflow-hidden rounded-lg bg-(--color-surface) p-4 text-(--color-text) shadow-(--shadow-soft) ${closing() ? "dialog-panel-closing" : ""}`}
       >
         <div>
           <div>
@@ -100,73 +100,75 @@ export function RequestModal(props: {
           </div>
         </div>
 
-        <div class="grid gap-4 overflow-y-auto pr-1 sm:grid-cols-[8rem_minmax(0,1fr)]">
-          <div class="aspect-2/3 overflow-hidden rounded-lg bg-(--color-surface-soft)">
-            <Show
-              when={posterUrl(props.item.posterPath)}
-              fallback={
-                <div class="grid h-full place-items-center px-4 text-center text-sm font-semibold text-(--color-muted)">
-                  {props.item.title}
-                </div>
-              }
-            >
-              {(src) => (
-                <img
-                  src={src()}
-                  alt={`${props.item.title} poster`}
-                  class="h-full w-full object-cover"
-                />
-              )}
-            </Show>
-          </div>
-
-          <div class="grid content-start gap-3">
-            <p class="m-0 text-sm leading-relaxed text-(--color-muted)">
-              {props.item.overview || "No overview available."}
-            </p>
-
-            <div class="flex flex-wrap gap-2">
-              <Show when={props.item.mediaType === "movie"}>
-                <a
-                  href={letterboxdTmdbUrl(props.item)}
-                  target="_blank"
-                  rel="noreferrer"
-                  class={smallSecondaryButtonClass}
-                >
-                  Letterboxd
-                </a>
-              </Show>
-            </div>
-          </div>
-        </div>
-
-        <Show when={isSeries()}>
-          <Show
-            when={seasons().length > 0}
-            fallback={
-              <p class={`${panelClass} p-3 text-sm text-(--color-muted)`}>
-                TMDB did not return season details for this series.
-              </p>
-            }
-          >
-            <div class="grid max-h-95 gap-2 overflow-y-auto pr-1">
-              <For each={seasons()}>
-                {(season) => (
-                  <SeasonOption
-                    season={season}
-                    checked={props.selectedSeasonNumbers.includes(season.seasonNumber)}
-                    available={availableSeasons().has(season.seasonNumber)}
-                    onToggle={props.onToggle}
+        <div class="dialog-scroll min-h-0 overflow-y-auto pr-1">
+          <div class="grid gap-4 sm:grid-cols-[8rem_minmax(0,1fr)]">
+            <div class="aspect-2/3 w-full max-w-52 justify-self-center overflow-hidden rounded-lg bg-(--color-surface-soft) sm:max-w-none">
+              <Show
+                when={posterUrl(props.item.posterPath)}
+                fallback={
+                  <div class="grid h-full place-items-center px-4 text-center text-sm font-semibold text-(--color-muted)">
+                    {props.item.title}
+                  </div>
+                }
+              >
+                {(src) => (
+                  <img
+                    src={src()}
+                    alt={`${props.item.title} poster`}
+                    class="h-full w-full object-cover"
                   />
                 )}
-              </For>
+              </Show>
             </div>
-          </Show>
-        </Show>
 
-        <Show when={props.error}>
-          {(error) => <p class="m-0 text-sm text-(--color-danger)">{error()}</p>}
-        </Show>
+            <div class="grid content-start gap-3">
+              <p class="m-0 text-sm leading-relaxed text-(--color-muted)">
+                {props.item.overview || "No overview available."}
+              </p>
+
+              <div class="flex flex-wrap gap-2">
+                <Show when={props.item.mediaType === "movie"}>
+                  <a
+                    href={letterboxdTmdbUrl(props.item)}
+                    target="_blank"
+                    rel="noreferrer"
+                    class={smallSecondaryButtonClass}
+                  >
+                    Letterboxd
+                  </a>
+                </Show>
+              </div>
+            </div>
+          </div>
+
+          <Show when={isSeries()}>
+            <Show
+              when={seasons().length > 0}
+              fallback={
+                <p class={`${panelClass} mt-4 p-3 text-sm text-(--color-muted)`}>
+                  TMDB did not return season details for this series.
+                </p>
+              }
+            >
+              <div class="mt-4 grid gap-2">
+                <For each={seasons()}>
+                  {(season) => (
+                    <SeasonOption
+                      season={season}
+                      checked={props.selectedSeasonNumbers.includes(season.seasonNumber)}
+                      available={availableSeasons().has(season.seasonNumber)}
+                      onToggle={props.onToggle}
+                    />
+                  )}
+                </For>
+              </div>
+            </Show>
+          </Show>
+
+          <Show when={props.error}>
+            {(error) => <p class="mt-4 mb-0 text-sm text-(--color-danger)">{error()}</p>}
+          </Show>
+        </div>
 
         <div class="flex justify-end gap-2">
           <button type="button" onClick={dismiss} class={secondaryButtonClass}>
