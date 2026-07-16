@@ -2,6 +2,7 @@ import { Show, createSignal } from "solid-js";
 
 import { FormInput } from "../components/FormInput";
 import { messageFor } from "../lib/api";
+import { defaultJellyfinUrl } from "../lib/integrations";
 import type { FirstRunSetupInput } from "../lib/types";
 import { panelClass, primaryButtonClass } from "../lib/ui";
 
@@ -12,7 +13,7 @@ export function SetupPage(props: {
   const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
   const [setupToken, setSetupToken] = createSignal(params.get("setupToken") ?? "");
   const [publicOrigin, setPublicOrigin] = createSignal(window.location.origin);
-  const [jellyfinUrl, setJellyfinUrl] = createSignal("");
+  const [jellyfinUrl, setJellyfinUrl] = createSignal(defaultJellyfinUrl);
   const [jellyfinApiKey, setJellyfinApiKey] = createSignal("");
   const [username, setUsername] = createSignal("");
   const [password, setPassword] = createSignal("");
@@ -60,7 +61,7 @@ export function SetupPage(props: {
             label="Jellyfin URL"
             value={jellyfinUrl()}
             onInput={setJellyfinUrl}
-            placeholder="http://localhost:8096"
+            placeholder={defaultJellyfinUrl}
           />
           <FormInput
             label="Jellyfin API key"

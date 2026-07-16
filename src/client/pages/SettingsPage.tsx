@@ -3,6 +3,7 @@ import { For, Show, createEffect, createSignal, onCleanup, type JSX } from "soli
 import type { AdminIntegrationSettings, ArrServiceOptions } from "../../shared/types";
 import { FormInput } from "../components/FormInput";
 import { messageFor } from "../lib/api";
+import { defaultJellyfinUrl, defaultRadarrUrl, defaultSonarrUrl } from "../lib/integrations";
 import { formatBytes } from "../lib/media";
 import type { ConnectionInput } from "../lib/types";
 import { controlClass } from "../lib/ui";
@@ -30,14 +31,14 @@ export function SettingsPage() {
   const settings = () => store.adminSettings() ?? defaultSettings;
 
   const [publicOrigin, setPublicOrigin] = createSignal(window.location.origin);
-  const [jellyfinUrl, setJellyfinUrl] = createSignal("");
+  const [jellyfinUrl, setJellyfinUrl] = createSignal(defaultJellyfinUrl);
   const [jellyfinApiKey, setJellyfinApiKey] = createSignal("");
   const [tmdbToken, setTmdbToken] = createSignal("");
-  const [radarrUrl, setRadarrUrl] = createSignal("");
+  const [radarrUrl, setRadarrUrl] = createSignal(defaultRadarrUrl);
   const [radarrApiKey, setRadarrApiKey] = createSignal("");
   const [radarrRootFolderPath, setRadarrRootFolderPath] = createSignal("");
   const [radarrQualityProfileId, setRadarrQualityProfileId] = createSignal("");
-  const [sonarrUrl, setSonarrUrl] = createSignal("");
+  const [sonarrUrl, setSonarrUrl] = createSignal(defaultSonarrUrl);
   const [sonarrApiKey, setSonarrApiKey] = createSignal("");
   const [sonarrRootFolderPath, setSonarrRootFolderPath] = createSignal("");
   const [sonarrAnimeRootFolderPath, setSonarrAnimeRootFolderPath] = createSignal("");
@@ -53,14 +54,14 @@ export function SettingsPage() {
     appliedSettings = settings;
 
     setPublicOrigin(settings.app.publicOrigin ?? window.location.origin);
-    setJellyfinUrl(settings.jellyfin.url ?? "");
+    setJellyfinUrl(settings.jellyfin.url ?? defaultJellyfinUrl);
     setJellyfinApiKey("");
     setTmdbToken("");
-    setRadarrUrl(settings.radarr.url ?? "");
+    setRadarrUrl(settings.radarr.url ?? defaultRadarrUrl);
     setRadarrApiKey("");
     setRadarrRootFolderPath(settings.radarr.rootFolderPath ?? "");
     setRadarrQualityProfileId(String(settings.radarr.qualityProfileId ?? ""));
-    setSonarrUrl(settings.sonarr.url ?? "");
+    setSonarrUrl(settings.sonarr.url ?? defaultSonarrUrl);
     setSonarrApiKey("");
     setSonarrRootFolderPath(settings.sonarr.rootFolderPath ?? "");
     setSonarrAnimeRootFolderPath(settings.sonarr.animeRootFolderPath ?? "");
@@ -188,7 +189,7 @@ export function SettingsPage() {
             label="URL"
             value={jellyfinUrl()}
             onInput={setJellyfinUrl}
-            placeholder="http://localhost:8096"
+            placeholder={defaultJellyfinUrl}
           />
           <FormInput
             label="API key"
@@ -217,7 +218,7 @@ export function SettingsPage() {
             label="URL"
             value={radarrUrl()}
             onInput={setRadarrUrl}
-            placeholder="http://localhost:7878"
+            placeholder={defaultRadarrUrl}
           />
           <FormInput
             label="API key"
@@ -255,7 +256,7 @@ export function SettingsPage() {
             label="URL"
             value={sonarrUrl()}
             onInput={setSonarrUrl}
-            placeholder="http://localhost:8989"
+            placeholder={defaultSonarrUrl}
           />
           <FormInput
             label="API key"
