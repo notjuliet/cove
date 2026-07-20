@@ -40,7 +40,7 @@ export function SetupPage(props: {
   }
 
   return (
-    <main class="min-h-screen bg-(--color-bg) px-4 py-8 text-(--color-text)">
+    <main class="min-h-screen px-4 py-8 text-(--color-text)">
       <form class="mx-auto grid max-w-2xl gap-5" onSubmit={submit}>
         <h1 class="m-0 text-2xl font-bold tracking-normal">Set up Cove</h1>
 

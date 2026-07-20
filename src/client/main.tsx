@@ -15,7 +15,7 @@ render(
   () => (
     <ErrorBoundary
       fallback={(error) => (
-        <main class="flex min-h-screen items-center justify-center bg-(--color-bg) p-6 text-(--color-text)">
+        <main class="flex min-h-screen items-center justify-center p-6 text-(--color-text)">
           <section class="max-w-md rounded-lg border border-(--color-border) bg-(--color-surface) p-5">
             <h1 class="text-lg font-semibold">Cove hit a UI error.</h1>
             <p class="mt-2 text-sm text-(--color-muted)">

@@ -201,7 +201,7 @@ function AppShell() {
       <Show
         when={store.health()}
         fallback={
-          <div class="grid min-h-screen place-items-center bg-(--color-bg) p-6 text-sm text-(--color-muted)">
+          <div class="grid min-h-screen place-items-center p-6 text-sm text-(--color-muted)">
             Loading...
           </div>
         }
@@ -216,7 +216,7 @@ function AppShell() {
               fallback={<LoginPage busy={store.authBusy()} onLogin={store.loginJellyfin} />}
             >
               {(user) => (
-                <div class="min-h-screen bg-(--color-bg) text-(--color-text)">
+                <div class="min-h-screen text-(--color-text)">
                   <header class="mx-auto w-full max-w-3xl px-5 pt-5">
                     <div class="rounded-2xl border border-(--color-border) bg-(--color-surface) p-3 shadow-(--shadow-card)">
                       <div class="flex items-center justify-between gap-4 px-1">

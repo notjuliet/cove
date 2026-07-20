@@ -25,7 +25,7 @@ export function LoginPage(props: {
   }
 
   return (
-    <main class="grid min-h-screen place-items-center bg-(--color-bg) px-4 py-8 text-(--color-text)">
+    <main class="grid min-h-screen place-items-center px-4 py-8 text-(--color-text)">
       <form class={`${panelClass} grid w-full max-w-sm gap-4 p-4`} onSubmit={submit}>
         <div class="grid gap-1">
           <div class="flex items-center gap-2">
