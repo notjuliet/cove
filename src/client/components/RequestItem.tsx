@@ -1,7 +1,14 @@
-import { Show } from "solid-js";
+import { Show, createSignal } from "solid-js";
 
 import type { MediaRequest } from "../../shared/types";
-import { arrMediaUrl, jellyfinMediaUrl, posterUrl, seasonListLabel, yearFor } from "../lib/media";
+import {
+  arrMediaUrl,
+  jellyfinMediaUrl,
+  posterUrl,
+  seasonListLabel,
+  userAvatarUrl,
+  yearFor,
+} from "../lib/media";
 import { smallSecondaryButtonClass } from "../lib/ui";
 import { AvailabilityStatus } from "./AvailabilityStatus";
 
@@ -12,6 +19,7 @@ export function RequestItem(props: {
   showActions?: boolean;
   showRequester?: boolean;
 }) {
+  const [avatarFailed, setAvatarFailed] = createSignal(false);
   const isAvailable = () => props.request.availability === "available";
   const details = () => {
     const values = [
@@ -19,7 +27,6 @@ export function RequestItem(props: {
       props.request.mediaType === "tv" && props.request.seasonNumbers?.length
         ? seasonListLabel(props.request.seasonNumbers)
         : undefined,
-      props.showRequester ? props.request.requestedBy : undefined,
     ];
 
     return values.filter(Boolean).join(" · ");
@@ -59,8 +66,24 @@ export function RequestItem(props: {
           <h3 class="m-0 truncate text-sm font-bold tracking-normal transition-colors group-focus-within:text-(--color-accent) group-hover:text-(--color-accent)">
             {props.request.title}
           </h3>
-          <Show when={details()}>
-            <p class="mt-1 mb-0 truncate text-xs text-(--color-muted)">{details()}</p>
+          <Show when={details() || props.showRequester}>
+            <p class="mt-1 mb-0 flex min-w-0 items-center gap-2 text-xs text-(--color-muted)">
+              <Show when={details()}>{(value) => <span class="truncate">{value()}</span>}</Show>
+              <Show when={props.showRequester}>
+                <span class="flex min-w-0 items-center gap-1">
+                  <Show when={!avatarFailed()}>
+                    <img
+                      src={userAvatarUrl(props.request.requestedByUserId)}
+                      alt=""
+                      class="h-4 w-4 shrink-0 rounded-full bg-(--color-surface-soft) object-cover"
+                      loading="lazy"
+                      onError={() => setAvatarFailed(true)}
+                    />
+                  </Show>
+                  <span class="truncate">{props.request.requestedBy}</span>
+                </span>
+              </Show>
+            </p>
           </Show>
           <Show
             when={
