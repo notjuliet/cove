@@ -1,65 +1,41 @@
-import type { Accessor, Setter } from "solid-js";
+import { createSignal, type Accessor } from "solid-js";
 
 import type { AuthUser, MediaRequest, MediaRequestPage, TmdbMedia } from "../../shared/types";
 import { api, messageFor } from "../lib/api";
 import { mediaKey } from "../lib/media";
 import type { AppRoute, NoticeTone } from "../lib/types";
 
-type MediaActionsInput = {
+type MediaStateInput = {
   currentUser: Accessor<AuthUser | null>;
   route: Accessor<AppRoute>;
-  setRecentRequests: Setter<MediaRequest[]>;
-  query: Accessor<string>;
-  setRequests: Setter<MediaRequest[]>;
-  setRequestTotal: Setter<number>;
-  requestPage: Accessor<number>;
-  setRequestPage: Setter<number>;
-  requestUserFilter: Accessor<number | undefined>;
-  setRequestUserFilter: Setter<number | undefined>;
-  setRequestsBusy: Setter<boolean>;
-  setRequestsLoaded: Setter<boolean>;
   recentRequestLimit: number;
   requestPageSize: number;
-  setQuery: Setter<string>;
-  setResults: Setter<TmdbMedia[]>;
-  setSearchBusy: Setter<boolean>;
-  requestModalItem: Accessor<TmdbMedia | undefined>;
-  setRequestModalItem: Setter<TmdbMedia | undefined>;
-  selectedSeasonNumbers: Accessor<number[]>;
-  setSelectedSeasonNumbers: Setter<number[]>;
-  setRequestModalError: Setter<string>;
   setNotice: (message: string, tone?: NoticeTone) => void;
-  setBusyKey: Setter<string>;
   navigate: (nextRoute: AppRoute, options?: { replace?: boolean }) => void;
 };
 
-export function createMediaActions({
+export function createMediaState({
   currentUser,
   route,
-  setRecentRequests,
-  query,
-  setRequests,
-  setRequestTotal,
-  requestPage,
-  setRequestPage,
-  requestUserFilter,
-  setRequestUserFilter,
-  setRequestsBusy,
-  setRequestsLoaded,
   recentRequestLimit,
   requestPageSize,
-  setQuery,
-  setResults,
-  setSearchBusy,
-  requestModalItem,
-  setRequestModalItem,
-  selectedSeasonNumbers,
-  setSelectedSeasonNumbers,
-  setRequestModalError,
   setNotice,
-  setBusyKey,
   navigate,
-}: MediaActionsInput) {
+}: MediaStateInput) {
+  const [recentRequests, setRecentRequests] = createSignal<MediaRequest[]>([]);
+  const [requests, setRequests] = createSignal<MediaRequest[]>([]);
+  const [requestTotal, setRequestTotal] = createSignal(0);
+  const [requestPage, setRequestPage] = createSignal(1);
+  const [requestUserFilter, setRequestUserFilter] = createSignal<number>();
+  const [requestsBusy, setRequestsBusy] = createSignal(false);
+  const [requestsLoaded, setRequestsLoaded] = createSignal(false);
+  const [query, setQuery] = createSignal("");
+  const [results, setResults] = createSignal<TmdbMedia[]>([]);
+  const [searchBusy, setSearchBusy] = createSignal(false);
+  const [requestModalItem, setRequestModalItem] = createSignal<TmdbMedia>();
+  const [selectedSeasonNumbers, setSelectedSeasonNumbers] = createSignal<number[]>([]);
+  const [requestModalError, setRequestModalError] = createSignal("");
+  const [busyKey, setBusyKey] = createSignal("");
   let searchLoadToken = 0;
   let searchLoadInvalidated = false;
   let recentRequestsLoadToken = 0;
@@ -382,6 +358,21 @@ export function createMediaActions({
   }
 
   return {
+    recentRequests,
+    requests,
+    requestTotal,
+    requestPage,
+    requestUserFilter,
+    requestsBusy,
+    requestsLoaded,
+    query,
+    results,
+    searchBusy,
+    requestModalItem,
+    selectedSeasonNumbers,
+    requestModalError,
+    busyKey,
+    setQuery,
     loadRequests,
     loadRequestPage,
     showRequestPage,

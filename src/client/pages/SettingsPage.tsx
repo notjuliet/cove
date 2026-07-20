@@ -1,11 +1,19 @@
-import { For, Show, createEffect, createSignal, onCleanup, type JSX } from "solid-js";
+import {
+  For,
+  Show,
+  createEffect,
+  createSignal,
+  onCleanup,
+  type Accessor,
+  type JSX,
+} from "solid-js";
 
 import type { AdminIntegrationSettings, ArrServiceOptions } from "../../shared/types";
 import { FormInput } from "../components/FormInput";
 import { messageFor } from "../lib/api";
 import { defaultJellyfinUrl, defaultRadarrUrl, defaultSonarrUrl } from "../lib/integrations";
 import { formatBytes } from "../lib/media";
-import type { ConnectionInput } from "../lib/types";
+import type { ArrServiceName, ConnectionInput } from "../lib/types";
 import { controlClass } from "../lib/ui";
 import { useStore } from "../store";
 
@@ -68,58 +76,47 @@ export function SettingsPage() {
     setSonarrQualityProfileId(String(settings.sonarr.qualityProfileId ?? ""));
   });
 
-  let radarrConnectionKey = "";
-  let sonarrConnectionKey = "";
+  function probeArrOptions(
+    service: ArrServiceName,
+    url: Accessor<string>,
+    apiKey: Accessor<string>,
+    hasSavedApiKey: Accessor<boolean | undefined>,
+  ) {
+    let appliedKey = "";
+    createEffect(() => {
+      const savedApiKey = hasSavedApiKey();
+      const nextKey =
+        savedApiKey === undefined ? "" : connectionProbeKey(url(), apiKey(), savedApiKey);
+      if (!nextKey) {
+        appliedKey = "";
+        store.clearArrOptions(service);
+        return;
+      }
+      if (nextKey === appliedKey) {
+        return;
+      }
 
-  createEffect(() => {
-    const settings = store.adminSettings();
-    const nextKey = settings
-      ? connectionProbeKey(radarrUrl(), radarrApiKey(), settings.radarr.apiKeyConfigured)
-      : "";
+      const input = connectionInput(url(), apiKey());
+      const timeout = window.setTimeout(() => {
+        appliedKey = nextKey;
+        void store.loadArrOptions(service, input);
+      }, 500);
+      onCleanup(() => window.clearTimeout(timeout));
+    });
+  }
 
-    if (!nextKey) {
-      radarrConnectionKey = "";
-      store.clearArrOptions("radarr");
-      return;
-    }
-
-    if (nextKey === radarrConnectionKey) {
-      return;
-    }
-
-    const input = connectionInput(radarrUrl(), radarrApiKey());
-    const timeout = window.setTimeout(() => {
-      radarrConnectionKey = nextKey;
-      void store.loadArrOptions("radarr", input);
-    }, 500);
-
-    onCleanup(() => window.clearTimeout(timeout));
-  });
-
-  createEffect(() => {
-    const settings = store.adminSettings();
-    const nextKey = settings
-      ? connectionProbeKey(sonarrUrl(), sonarrApiKey(), settings.sonarr.apiKeyConfigured)
-      : "";
-
-    if (!nextKey) {
-      sonarrConnectionKey = "";
-      store.clearArrOptions("sonarr");
-      return;
-    }
-
-    if (nextKey === sonarrConnectionKey) {
-      return;
-    }
-
-    const input = connectionInput(sonarrUrl(), sonarrApiKey());
-    const timeout = window.setTimeout(() => {
-      sonarrConnectionKey = nextKey;
-      void store.loadArrOptions("sonarr", input);
-    }, 500);
-
-    onCleanup(() => window.clearTimeout(timeout));
-  });
+  probeArrOptions(
+    "radarr",
+    radarrUrl,
+    radarrApiKey,
+    () => store.adminSettings()?.radarr.apiKeyConfigured,
+  );
+  probeArrOptions(
+    "sonarr",
+    sonarrUrl,
+    sonarrApiKey,
+    () => store.adminSettings()?.sonarr.apiKeyConfigured,
+  );
 
   async function submit(event: SubmitEvent) {
     event.preventDefault();

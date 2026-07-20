@@ -1,4 +1,4 @@
-import type { Accessor, Setter } from "solid-js";
+import { createSignal, type Accessor, type Setter } from "solid-js";
 
 import type {
   AdminIntegrationSettings,
@@ -17,41 +17,40 @@ import type {
   NoticeTone,
 } from "../lib/types";
 
-type AdminActionsInput = {
+type AdminStateInput = {
   currentUser: Accessor<AuthUser | null>;
   setCurrentUser: Setter<AuthUser | null>;
-  setAdminSettings: Setter<AdminIntegrationSettings | undefined>;
-  setAdminUsers: Setter<AdminUser[]>;
-  setAdminUsersLoaded: Setter<boolean>;
-  setArrOptions: Setter<ArrOptionsState>;
-  setArrOptionsBusy: Setter<ArrOptionsBusyState>;
-  setArrOptionsError: Setter<ArrOptionsErrorState>;
-  setSettingsBusy: Setter<boolean>;
-  setUsersBusy: Setter<boolean>;
-  setSyncUsersBusy: Setter<boolean>;
-  setSyncBusy: Setter<boolean>;
   setNotice: (message: string, tone?: NoticeTone) => void;
-  arrOptionsLoadTokens: Record<ArrServiceName, number>;
   loadRequests: () => Promise<void>;
 };
 
-export function createAdminActions({
+export function createAdminState({
   currentUser,
   setCurrentUser,
-  setAdminSettings,
-  setAdminUsers,
-  setAdminUsersLoaded,
-  setArrOptions,
-  setArrOptionsBusy,
-  setArrOptionsError,
-  setSettingsBusy,
-  setUsersBusy,
-  setSyncUsersBusy,
-  setSyncBusy,
   setNotice,
-  arrOptionsLoadTokens,
   loadRequests,
-}: AdminActionsInput) {
+}: AdminStateInput) {
+  const [settingsBusy, setSettingsBusy] = createSignal(false);
+  const [usersBusy, setUsersBusy] = createSignal(false);
+  const [syncUsersBusy, setSyncUsersBusy] = createSignal(false);
+  const [syncBusy, setSyncBusy] = createSignal(false);
+  const [adminSettings, setAdminSettings] = createSignal<AdminIntegrationSettings>();
+  const [adminUsers, setAdminUsers] = createSignal<AdminUser[]>([]);
+  const [adminUsersLoaded, setAdminUsersLoaded] = createSignal(false);
+  const [arrOptions, setArrOptions] = createSignal<ArrOptionsState>({});
+  const [arrOptionsBusy, setArrOptionsBusy] = createSignal<ArrOptionsBusyState>({});
+  const [arrOptionsError, setArrOptionsError] = createSignal<ArrOptionsErrorState>({});
+  const arrOptionsLoadTokens: Record<ArrServiceName, number> = { radarr: 0, sonarr: 0 };
+
+  function clearAdminState() {
+    setAdminSettings(undefined);
+    setAdminUsers([]);
+    setAdminUsersLoaded(false);
+    setArrOptions({});
+    setArrOptionsBusy({});
+    setArrOptionsError({});
+  }
+
   async function loadAdminSettings() {
     if (!currentUser()?.isAdministrator) {
       return;
@@ -200,6 +199,17 @@ export function createAdminActions({
   }
 
   return {
+    settingsBusy,
+    usersBusy,
+    syncUsersBusy,
+    syncBusy,
+    adminSettings,
+    adminUsers,
+    adminUsersLoaded,
+    arrOptions,
+    arrOptionsBusy,
+    arrOptionsError,
+    clearAdminState,
     loadAdminSettings,
     clearArrOptions,
     loadArrOptions,
