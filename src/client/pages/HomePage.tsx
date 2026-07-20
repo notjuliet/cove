@@ -19,7 +19,7 @@ export function HomePage() {
             event.preventDefault();
             store.showRequestsRoute();
           }}
-          class="rounded-md px-2 py-1 text-xs font-semibold text-(--color-muted) transition hover:bg-(--color-surface-hover) hover:text-(--color-text)"
+          class="text-xs font-semibold text-(--color-muted) transition-colors hover:text-(--color-text)"
         >
           View all
         </a>
