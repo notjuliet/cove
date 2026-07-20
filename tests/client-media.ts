@@ -142,9 +142,11 @@ test("coalesces route-specific request loads", async () => {
     media.setRoute({ page: "home" });
     const homeMountLoad = media.loadRequests();
     const homeBootLoad = media.loadRequests();
+    expect(media.recentRequestsLoaded()).toBe(false);
     expect(fetchMock.urls).toEqual(["/api/requests?limit=20&offset=0", "/api/requests?limit=5"]);
     fetchMock.respond(requestResponse([]));
     await Promise.all([homeMountLoad, homeBootLoad]);
+    expect(media.recentRequestsLoaded()).toBe(true);
   } finally {
     fetchMock.restore();
   }

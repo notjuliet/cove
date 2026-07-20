@@ -23,6 +23,7 @@ export function createMediaState({
   navigate,
 }: MediaStateInput) {
   const [recentRequests, setRecentRequests] = createSignal<MediaRequest[]>([]);
+  const [recentRequestsLoaded, setRecentRequestsLoaded] = createSignal(false);
   const [requests, setRequests] = createSignal<MediaRequest[]>([]);
   const [requestTotal, setRequestTotal] = createSignal(0);
   const [requestPage, setRequestPage] = createSignal(1);
@@ -59,13 +60,20 @@ export function createMediaState({
       const token = ++recentRequestsLoadToken;
       if (!user) {
         setRecentRequests([]);
+        setRecentRequestsLoaded(false);
         return;
       }
 
-      const params = new URLSearchParams({ limit: String(recentRequestLimit) });
-      const data = await api<MediaRequestPage>(`/api/requests?${params}`);
-      if (token === recentRequestsLoadToken) {
-        setRecentRequests((current) => preserveUnchangedRequests(current, data.requests));
+      try {
+        const params = new URLSearchParams({ limit: String(recentRequestLimit) });
+        const data = await api<MediaRequestPage>(`/api/requests?${params}`);
+        if (token === recentRequestsLoadToken) {
+          setRecentRequests((current) => preserveUnchangedRequests(current, data.requests));
+        }
+      } finally {
+        if (token === recentRequestsLoadToken) {
+          setRecentRequestsLoaded(true);
+        }
       }
     });
   }
@@ -359,6 +367,7 @@ export function createMediaState({
 
   return {
     recentRequests,
+    recentRequestsLoaded,
     requests,
     requestTotal,
     requestPage,

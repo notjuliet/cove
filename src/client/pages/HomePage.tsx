@@ -1,4 +1,4 @@
-import { For, onMount } from "solid-js";
+import { For, Show, onMount } from "solid-js";
 
 import { RequestItem } from "../components/RequestItem";
 import { routePath } from "../lib/routing";
@@ -26,22 +26,29 @@ export function HomePage() {
       </div>
 
       <div class="divide-y divide-(--color-border) border-t border-(--color-border) px-4">
-        <For
-          each={store.recentRequests()}
+        <Show
+          when={store.recentRequestsLoaded()}
           fallback={
-            <div class="py-4 text-center text-sm text-(--color-muted)">No requests yet.</div>
+            <div class="py-4 text-center text-sm text-(--color-muted)">Loading requests...</div>
           }
         >
-          {(request) => (
-            <RequestItem
-              request={request}
-              busy={store.busyKey() === `request:${request.id}`}
-              onDelete={() => store.deleteMediaRequest(request)}
-              showActions={false}
-              showRequester={Boolean(store.currentUser()?.isAdministrator)}
-            />
-          )}
-        </For>
+          <For
+            each={store.recentRequests()}
+            fallback={
+              <div class="py-4 text-center text-sm text-(--color-muted)">No requests yet.</div>
+            }
+          >
+            {(request) => (
+              <RequestItem
+                request={request}
+                busy={store.busyKey() === `request:${request.id}`}
+                onDelete={() => store.deleteMediaRequest(request)}
+                showActions={false}
+                showRequester={Boolean(store.currentUser()?.isAdministrator)}
+              />
+            )}
+          </For>
+        </Show>
       </div>
     </section>
   );
