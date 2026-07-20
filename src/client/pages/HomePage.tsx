@@ -1,4 +1,4 @@
-import { For } from "solid-js";
+import { For, onMount } from "solid-js";
 
 import { RequestItem } from "../components/RequestItem";
 import { routePath } from "../lib/routing";
@@ -6,6 +6,8 @@ import { useStore } from "../store";
 
 export function HomePage() {
   const store = useStore();
+
+  onMount(() => void store.loadRequests());
 
   return (
     <section class="overflow-hidden rounded-2xl border border-(--color-border) bg-(--color-surface) shadow-(--shadow-card)">

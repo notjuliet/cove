@@ -25,7 +25,7 @@ export function RequestsPage() {
                   event.currentTarget.value ? Number(event.currentTarget.value) : undefined,
                 )
               }
-              class="h-8 min-w-36 rounded-md border border-(--color-border) bg-(--color-surface) px-2 text-xs font-semibold text-(--color-text) outline-none focus:ring-2 focus:ring-(--color-accent-soft)"
+              class="h-8 min-w-36 rounded-lg border border-(--color-border) bg-(--color-surface) px-2 text-xs font-semibold text-(--color-text) outline-none focus:ring-2 focus:ring-(--color-accent-soft)"
             >
               <option value="">All users</option>
               <For each={store.adminUsers()}>
@@ -38,7 +38,7 @@ export function RequestsPage() {
 
       <div class="divide-y divide-(--color-border) border-t border-(--color-border) px-4">
         <Show
-          when={!store.requestsBusy()}
+          when={store.requestsLoaded()}
           fallback={
             <div class="py-4 text-center text-sm text-(--color-muted)">Loading requests...</div>
           }

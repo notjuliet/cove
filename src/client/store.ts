@@ -37,6 +37,7 @@ function createAppState() {
   const [requestPage, setRequestPage] = createSignal(1);
   const [requestUserFilter, setRequestUserFilter] = createSignal<number>();
   const [requestsBusy, setRequestsBusy] = createSignal(false);
+  const [requestsLoaded, setRequestsLoaded] = createSignal(false);
   const [query, setQuery] = createSignal("");
   const [results, setResults] = createSignal<TmdbMedia[]>([]);
   const [searchBusy, setSearchBusy] = createSignal(false);
@@ -115,6 +116,7 @@ function createAppState() {
     requestUserFilter,
     setRequestUserFilter,
     setRequestsBusy,
+    setRequestsLoaded,
     recentRequestLimit,
     requestPageSize,
     query,
@@ -169,6 +171,7 @@ function createAppState() {
     requestPage,
     requestUserFilter,
     requestsBusy,
+    requestsLoaded,
     query,
     results,
     searchBusy,

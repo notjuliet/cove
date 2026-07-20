@@ -17,6 +17,7 @@ type MediaActionsInput = {
   requestUserFilter: Accessor<number | undefined>;
   setRequestUserFilter: Setter<number | undefined>;
   setRequestsBusy: Setter<boolean>;
+  setRequestsLoaded: Setter<boolean>;
   recentRequestLimit: number;
   requestPageSize: number;
   setQuery: Setter<string>;
@@ -44,6 +45,7 @@ export function createMediaActions({
   requestUserFilter,
   setRequestUserFilter,
   setRequestsBusy,
+  setRequestsLoaded,
   recentRequestLimit,
   requestPageSize,
   setQuery,
@@ -62,68 +64,88 @@ export function createMediaActions({
   let searchLoadInvalidated = false;
   let recentRequestsLoadToken = 0;
   let requestPageLoadToken = 0;
+  const requestLoads = new Map<string, Promise<void>>();
 
-  async function loadRecentRequests() {
-    const token = ++recentRequestsLoadToken;
-    if (!currentUser()) {
-      setRecentRequests([]);
-      return;
+  function coalesceRequestLoad(key: string, load: () => Promise<void>): Promise<void> {
+    const activeLoad = requestLoads.get(key);
+    if (activeLoad) {
+      return activeLoad;
     }
 
-    const params = new URLSearchParams({ limit: String(recentRequestLimit) });
-    const data = await api<MediaRequestPage>(`/api/requests?${params}`);
-    if (token === recentRequestsLoadToken) {
-      setRecentRequests(data.requests);
-    }
+    const promise = load().finally(() => requestLoads.delete(key));
+    requestLoads.set(key, promise);
+    return promise;
   }
 
-  async function loadRequestPage() {
-    const token = ++requestPageLoadToken;
+  function loadRecentRequests() {
     const user = currentUser();
-    if (!user) {
-      setRequests([]);
-      setRequestTotal(0);
-      setRequestPage(1);
-      setRequestUserFilter(undefined);
-      setRequestsBusy(false);
-      return;
-    }
+    return coalesceRequestLoad(`recent:${user?.id ?? "signed-out"}`, async () => {
+      const token = ++recentRequestsLoadToken;
+      if (!user) {
+        setRecentRequests([]);
+        return;
+      }
 
-    const requestedPage = requestPage();
-    const params = new URLSearchParams({
-      limit: String(requestPageSize),
-      offset: String((requestedPage - 1) * requestPageSize),
-    });
-    const requestedByUserId = requestUserFilter();
-    if (user.isAdministrator && requestedByUserId) {
-      params.set("requestedByUserId", String(requestedByUserId));
-    }
-
-    setRequestsBusy(true);
-    try {
+      const params = new URLSearchParams({ limit: String(recentRequestLimit) });
       const data = await api<MediaRequestPage>(`/api/requests?${params}`);
-      if (token !== requestPageLoadToken) {
-        return;
+      if (token === recentRequestsLoadToken) {
+        setRecentRequests((current) => preserveUnchangedRequests(current, data.requests));
       }
+    });
+  }
 
-      const lastPage = Math.max(1, Math.ceil(data.total / requestPageSize));
-      if (requestedPage > lastPage) {
-        setRequestPage(lastPage);
-        await loadRequestPage();
-        return;
-      }
-
-      setRequests(data.requests);
-      setRequestTotal(data.total);
-    } catch (error) {
-      if (token === requestPageLoadToken) {
-        setNotice(messageFor(error), "error");
-      }
-    } finally {
-      if (token === requestPageLoadToken) {
+  function loadRequestPage(): Promise<void> {
+    const user = currentUser();
+    const requestedPage = requestPage();
+    const requestedByUserId = user?.isAdministrator ? requestUserFilter() : undefined;
+    const key = `page:${user?.id ?? "signed-out"}:${requestedPage}:${requestedByUserId ?? "all"}`;
+    return coalesceRequestLoad(key, async () => {
+      const token = ++requestPageLoadToken;
+      if (!user) {
+        setRequests([]);
+        setRequestTotal(0);
+        setRequestPage(1);
+        setRequestUserFilter(undefined);
         setRequestsBusy(false);
+        setRequestsLoaded(false);
+        return;
       }
-    }
+
+      const params = new URLSearchParams({
+        limit: String(requestPageSize),
+        offset: String((requestedPage - 1) * requestPageSize),
+      });
+      if (requestedByUserId) {
+        params.set("requestedByUserId", String(requestedByUserId));
+      }
+
+      setRequestsBusy(true);
+      try {
+        const data = await api<MediaRequestPage>(`/api/requests?${params}`);
+        if (token !== requestPageLoadToken) {
+          return;
+        }
+
+        const lastPage = Math.max(1, Math.ceil(data.total / requestPageSize));
+        if (requestedPage > lastPage) {
+          setRequestPage(lastPage);
+          await loadRequestPage();
+          return;
+        }
+
+        setRequests((current) => preserveUnchangedRequests(current, data.requests));
+        setRequestTotal(data.total);
+      } catch (error) {
+        if (token === requestPageLoadToken) {
+          setNotice(messageFor(error), "error");
+        }
+      } finally {
+        if (token === requestPageLoadToken) {
+          setRequestsBusy(false);
+          setRequestsLoaded(true);
+        }
+      }
+    });
   }
 
   async function loadRequests() {
@@ -133,7 +155,7 @@ export function createMediaActions({
     }
 
     if (route().page === "requests") {
-      await Promise.all([loadRecentRequests(), loadRequestPage()]);
+      await loadRequestPage();
       return;
     }
 
@@ -376,4 +398,31 @@ export function createMediaActions({
     toggleSeason,
     submitRequest,
   };
+}
+
+function preserveUnchangedRequests(
+  current: MediaRequest[],
+  incoming: MediaRequest[],
+): MediaRequest[] {
+  const currentById = new Map(current.map((request) => [request.id, request]));
+
+  return incoming.map((request) => {
+    const previous = currentById.get(request.id);
+    return previous && requestsMatch(previous, request) ? previous : request;
+  });
+}
+
+function requestsMatch(first: MediaRequest, second: MediaRequest): boolean {
+  const keys = Object.keys(first) as Array<keyof MediaRequest>;
+  return (
+    keys.length === Object.keys(second).length &&
+    keys.every((key) => {
+      const firstValue = first[key];
+      const secondValue = second[key];
+      return Array.isArray(firstValue) && Array.isArray(secondValue)
+        ? firstValue.length === secondValue.length &&
+            firstValue.every((value, index) => value === secondValue[index])
+        : firstValue === secondValue;
+    })
+  );
 }
